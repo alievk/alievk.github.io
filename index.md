@@ -4,7 +4,7 @@ title: Home
 ---
 
 <div class="profile-container">
-  <img src="assets/me.jpeg" alt="Ali Aliev" class="profile-photo">
+  <img src="{{ site.baseurl }}/assets/me.jpeg" alt="Ali Aliev" class="profile-photo">
   <h1>Ali Aliev</h1>
 </div>
 

@@ -76,15 +76,34 @@ h3 {
     color: #495057;
 }
 
+.project-links {
+    margin-top: 12px;
+}
+
 .project-links a {
-    text-decoration: none;
-    color: #1c7ed6;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
     font-weight: 500;
-    margin-right: 12px;
+    line-height: 1.4;
+    text-decoration: none;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background-color: #e7f5ff;
+    color: #1c7ed6;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
 }
 
 .project-links a:hover {
-    text-decoration: underline;
+    background-color: #d0ebff;
+    text-decoration: none;
+}
+
+.project-links a i {
+    margin-right: 6px;
 }
 
 .project-tags iframe {

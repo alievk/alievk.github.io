@@ -17,7 +17,7 @@ layout: default
     </div>
   </div>
   <div class="project-description">A photo editor based on diffusion networks.</div>
-  <div class="project-links"><a href="https://avatarify.ai/monet">Link</a></div>
+  <div class="project-links"><a href="https://avatarify.ai/monet"><i class="fas fa-link"></i> Website</a></div>
 </div>
 
 <div class="project">
@@ -29,7 +29,11 @@ layout: default
     </div>
   </div>
   <div class="project-description">A viral mobile app with over <strong>13 million</strong> users and <strong>$5M</strong> in revenue.</div>
-  <div class="project-links"><a href="https://avatarify.ai">Link</a> <a href="https://techcrunch.com/2021/04/14/deep-fake-video-app-avatarify-which-process-on-phone-plans-digital-watermark-for-videos">Link</a> <a href="https://adapty.io/case-studies/avatarify">Link</a></div>
+  <div class="project-links">
+    <a href="https://avatarify.ai"><i class="fas fa-link"></i> Website</a>
+    <a href="https://techcrunch.com/2021/04/14/deep-fake-video-app-avatarify-which-process-on-phone-plans-digital-watermark-for-videos"><i class="fas fa-newspaper"></i> TechCrunch</a>
+    <a href="https://adapty.io/case-studies/avatarify"><i class="fas fa-book-open"></i> Case Study</a>
+  </div>
 </div>
 
 <div class="project">
@@ -43,7 +47,9 @@ layout: default
   </div>
   <div class="project-description">A viral open-source Zoom extension for creating deepfake avatars.</div>
   <div class="project-links">
-    <a href="https://github.com/alievk/avatarify-python">Link</a> <a href="https://www.washingtonpost.com/technology/2021/03/25/deepfake-video-apps/">Link</a> <a href="https://www.vice.com/en/article/this-open-source-program-deepfakes-you-during-zoom-meetings-in-real-time/">Link</a>
+    <a href="https://github.com/alievk/avatarify-python"><i class="fab fa-github"></i> GitHub</a>
+    <a href="https://www.washingtonpost.com/technology/2021/03/25/deepfake-video-apps/"><i class="fas fa-newspaper"></i> Washington Post</a>
+    <a href="https://www.vice.com/en/article/this-open-source-program-deepfakes-you-during-zoom-meetings-in-real-time/"><i class="fas fa-newspaper"></i> Vice</a>
   </div>
 </div>
 
@@ -60,7 +66,10 @@ layout: default
     </div>
   </div>
   <div class="project-description">An influential work in neural rendering.</div>
-  <div class="project-links"><a href="https://saic-violet.github.io/npbg/">Link</a> <a href="https://thenextweb.com/news/watch-samsungs-ai-render-photorealistic-scenes-from-video">Link</a></div>
+  <div class="project-links">
+    <a href="https://saic-violet.github.io/npbg/"><i class="fas fa-link"></i> Project Page</a>
+    <a href="https://thenextweb.com/news/watch-samsungs-ai-render-photorealistic-scenes-from-video"><i class="fas fa-newspaper"></i> TheNextWeb</a>
+  </div>
 </div>
 
 <div class="project">
@@ -72,7 +81,7 @@ layout: default
     </div>
   </div>
   <div class="project-description">An AR system for film production.</div>
-  <div class="project-links"><a href="https://view.ga/">Link</a></div>
+  <div class="project-links"><a href="https://view.ga/"><i class="fas fa-link"></i> Website</a></div>
 </div>
 
 <div class="project">

@@ -9,6 +9,21 @@ layout: default
 
 <div class="project">
   <div class="project-header">
+    <h3>Voi - realtime voice agents.</h3>
+    <div class="project-tags">
+      <span class="tag tag-gray">2024</span>
+      <span class="tag tag-gray">Side project</span>
+    </div>
+  </div>
+  <div class="project-description">Open-source realtime voice agents for role play and more.</div>
+  <div class="project-links">
+    <a href="https://github.com/alievk/voi-server"><i class="fab fa-github"></i> GitHub</a>
+    <a href="https://www.youtube.com/watch?v=oOYvM61eYNk"><i class="fab fa-youtube"></i> YouTube</a>
+  </div>
+</div>
+
+<div class="project">
+  <div class="project-header">
     <h3>Monet - AI photo editor</h3>
     <div class="project-tags">
       <span class="tag tag-gray">2023</span>

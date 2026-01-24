@@ -12,6 +12,7 @@ layout: default
     <h3>vibeFM - music for improving focus.</h3>
     <div class="project-tags">
       <span class="tag tag-gray">2025</span>
+      <span class="tag tag-gray">Founder</span>
     </div>
   </div>
   <div class="project-description">Multi-platform music app for achieving sustained attention.</div>

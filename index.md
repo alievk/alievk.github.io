@@ -9,6 +9,19 @@ layout: default
 
 <div class="project">
   <div class="project-header">
+    <h3>vibeFM - music for improving focus.</h3>
+    <div class="project-tags">
+      <span class="tag tag-gray">2025</span>
+    </div>
+  </div>
+  <div class="project-description">Multi-platform music app for achieving sustained attention.</div>
+  <div class="project-links">
+    <a href="https://vibefm.vibelab.build"><i class="fab fa-link"></i> vibeFM</a>
+  </div>
+</div>
+
+<div class="project">
+  <div class="project-header">
     <h3>Voi - realtime voice agents.</h3>
     <div class="project-tags">
       <span class="tag tag-gray">2024</span>

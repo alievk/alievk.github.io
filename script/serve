@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+export RUBYOPT="${RUBYOPT:-} -r${SCRIPT_DIR}/jekyll_logger_patch"
+
+"${SCRIPT_DIR}/with-ruby" bundle exec jekyll serve

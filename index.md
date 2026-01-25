@@ -90,7 +90,7 @@ layout: default
       <span class="tag tag-gray" data-i18n="tag.main_author">Main Author</span>
       <a href="https://scholar.google.com/citations?view_op=view_citation&hl=en&user=gAUMV9oAAAAJ&citation_for_view=gAUMV9oAAAAJ:9yKSN-GCB0IC" class="citation-widget" title="Google Scholar Citations">
         <i class="fas fa-graduation-cap"></i>
-        <span>475</span>
+        <span>521</span>
       </a>
     </div>
   </div>

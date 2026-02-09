@@ -268,6 +268,19 @@
    10) Mobile tweaks
    ================================ */
 @media (max-width: 600px) {
+    :root {
+        font-size: 13px;
+    }
+    .container {
+        padding: 16px;
+    }
+    .profile-container {
+        margin-bottom: 0;
+    }
+    .profile-photo {
+        width: 72px;
+        height: 72px;
+    }
     .page-layout {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -278,7 +291,7 @@
     }
 
     .project-title {
-        margin-bottom: 12px;  /* Space between title and tags */
+        margin-bottom: 6px;  /* Space between title and tags */
     }
 
     .project-tags {
@@ -288,6 +301,7 @@
     }
 
     .tag {
+        font-size: 10px;
         margin-bottom: 8px;
         line-height: 1.2;  /* Tighter line height for tags */
     }
@@ -301,5 +315,9 @@
     .project-description {
         margin-top: 0px;  /* Explicit space after tags */
         margin-bottom: 4px;
+    }
+
+    .project-links .link {
+        font-size: 10px;
     }
 } 

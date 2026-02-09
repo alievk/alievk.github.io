@@ -17,7 +17,8 @@ layout: default
   </div>
   <div class="project-description" data-i18n="project.vibefm.desc">Multi-platform music app for achieving sustained attention.</div>
   <div class="project-links">
-    <a href="https://vibefm.vibelab.build"><i class="fas fa-link"></i> <span data-i18n="link.vibefm">vibeFM</span></a>
+    <a href="https://t.me/vibe_fm_bot"><i class="fas fa-link"></i> <span data-i18n="link.vibefm_tma">vibeFM</span></a>
+    <a href="https://vibefm.vibelab.build"><i class="fas fa-link"></i> <span data-i18n="link.vibefm_web">vibeFM</span></a>
   </div>
 </div>
 

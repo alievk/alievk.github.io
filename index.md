@@ -2,6 +2,11 @@
 layout: default
 ---
 
+<div class="top-bar">
+  <div class="language-switch" aria-label="Language switch">
+    <button type="button" data-lang="ru" aria-live="polite">EN</button>
+  </div>
+</div>
 <div class="page-layout">
   <aside class="profile-column">
     <div class="profile-container">
@@ -13,11 +18,6 @@ layout: default
     </div>
   </aside>
   <section class="projects-column">
-    <div class="top-bar">
-      <div class="language-switch" aria-label="Language switch">
-        <button type="button" data-lang="ru" aria-live="polite">EN</button>
-      </div>
-    </div>
 
 <div class="project">
   <div class="project-header">

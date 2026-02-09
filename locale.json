@@ -1,6 +1,7 @@
 {
   "ru": {
     "profile.name": "Али Алиев",
+    "profile.bio": "",
     "project.vibefm.title": "vibeFM - аудио ноотроп",
     "project.vibefm.desc": "Приложение для глубокой концентрации внимания во время работы и учёбы.",
     "project.voi.title": "Voi - голосовые агенты",
@@ -40,6 +41,7 @@
   },
   "en": {
     "profile.name": "Ali Aliev",
+    "profile.bio": "Building useful products at the intersection of AI, audio, and creativity.",
     "project.vibefm.title": "vibeFM - audio adderall",
     "project.vibefm.desc": "An app for deep focus during work and study.",
     "project.voi.title": "Voi - voice agents",

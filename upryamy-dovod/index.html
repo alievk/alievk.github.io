@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Упрямый Довод</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#79c0f2}
+  body{font-family:"Courier New",monospace;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  #game{position:fixed;inset:0;width:100vw;height:100vh;display:block;
+    image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer}
+  .ov{position:fixed;pointer-events:none;z-index:2;color:#fff;
+    text-shadow:2px 2px 0 rgba(30,30,30,.85);font-weight:bold;letter-spacing:.02em}
+  #hud{top:14px;right:16px;text-align:right;font-size:clamp(14px,2.2vw,20px);line-height:1.5}
+  #hud b{color:#ffe049}
+  /* speech bubble that follows the lawyer (to his right, a bit higher) */
+  #bubble{position:fixed;z-index:6;pointer-events:none;display:none;max-width:min(70vw,440px);
+    transform:translateY(-100%);
+    background:#f4f1e6;color:#20242b;border:4px solid #20242b;
+    box-shadow:0 0 0 4px #cfc7b0,5px 5px 0 rgba(0,0,0,.3);
+    padding:11px 15px;font-size:clamp(16px,2.7vw,25px);line-height:1.28;font-weight:bold;
+    text-align:left;text-shadow:none;opacity:1}
+  #bubble.out{opacity:0;transition:opacity .4s}
+  #bubble .nm{display:block;color:#c0392b;font-size:.68em;margin-bottom:3px}
+  #bubble::before,#bubble::after{content:"";position:absolute;width:0;height:0;border-style:solid}
+  #bubble::before{left:20px;bottom:-18px;border-width:18px 13px 0 0;border-color:#20242b transparent transparent transparent}
+  #bubble::after{left:24px;bottom:-12px;border-width:12px 9px 0 0;border-color:#f4f1e6 transparent transparent transparent}
+  /* center panel */
+  #center{inset:0;display:flex;align-items:center;justify-content:center}
+  .panel{background:rgba(15,18,24,.78);border:4px solid #d9d9d9;box-shadow:0 0 0 4px #3a3a3a;
+    padding:26px 30px;text-align:center;max-width:90vw}
+  .panel h1{font-size:clamp(28px,6vw,54px);color:#ffe049;letter-spacing:.02em;text-transform:uppercase;text-shadow:3px 3px 0 rgba(30,30,30,.9);margin-bottom:12px}
+  .panel h1.dead{color:#ff5a45}
+  .panel p{font-size:clamp(14px,2.6vw,20px);line-height:1.6;color:#fff}
+  .blink{animation:bl 1s steps(2) infinite}@keyframes bl{50%{opacity:.35}}
+  .panel h1.tb{animation:tb 2s infinite}@keyframes tb{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+  .panel b{color:#ffe049}
+  #mute{position:fixed;z-index:7;top:12px;left:12px;pointer-events:auto;cursor:pointer;
+    background:rgba(15,18,24,.72);color:#ffe049;border:3px solid #d9d9d9;
+    font-family:"Courier New",monospace;font-weight:bold;font-size:14px;padding:6px 10px;
+    text-shadow:2px 2px 0 rgba(30,30,30,.85)}
+  #mute.off{color:#8aa0b3}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<button id="mute">♪ вкл</button>
+<div id="hud" class="ov"></div>
+<div id="bubble"></div>
+<div id="center" class="ov"><div class="panel" id="panel"></div></div>
+
+<script>
+const cv=document.getElementById("game"),ctx=cv.getContext("2d");
+const hud=document.getElementById("hud"),bubbleEl=document.getElementById("bubble"),
+      centerEl=document.getElementById("center"),panel=document.getElementById("panel"),
+      muteBtn=document.getElementById("mute");
+let bubbleTimer=null;
+
+// ---- 8-bit background music (Web Audio, no external files) ----
+let actx,master,musicOn=true,mstep=0,mNext=0;
+const LEAD=[523,0,659,523,784,659,587,0, 523,0,659,784,880,784,659,0];
+const BASS=[131,131,175,175,165,165,196,196];
+const MSTEP=0.15;
+function note(f,dur,type,vol,t){
+  if(!f)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.03);
+}
+function msched(){
+  const now=actx.currentTime;
+  while(mNext<now+0.25){
+    note(LEAD[mstep%LEAD.length],MSTEP*0.9,"square",0.05,mNext);
+    if(mstep%2===0)note(BASS[(mstep>>1)%BASS.length],MSTEP*1.8,"triangle",0.09,mNext);
+    mNext+=MSTEP;mstep++;
+  }
+}
+function startMusic(){
+  if(!actx){
+    actx=new(window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();master.gain.value=musicOn?0.45:0;master.connect(actx.destination);
+    mNext=actx.currentTime+0.1;setInterval(msched,60);
+  }
+  if(actx.state==="suspended")actx.resume();
+}
+function toggleMute(){
+  musicOn=!musicOn;if(master)master.gain.value=musicOn?0.45:0;
+  muteBtn.classList.toggle("off",!musicOn);muteBtn.textContent=musicOn?"♪ вкл":"♪ выкл";
+}
+muteBtn.addEventListener("pointerdown",e=>{e.stopPropagation();startMusic();toggleMute();});
+
+// ---- sound effects ----
+function noiseBurst(dur,vol,hp){
+  const n=Math.floor(actx.sampleRate*dur),buf=actx.createBuffer(1,n,actx.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+  const s=actx.createBufferSource();s.buffer=buf;
+  const g=actx.createGain();g.gain.value=vol;
+  const f=actx.createBiquadFilter();f.type="highpass";f.frequency.value=hp;
+  s.connect(f);f.connect(g);g.connect(master);s.start();
+}
+function sfxWhip(){
+  if(!actx)return;
+  noiseBurst(0.06,0.5,2500);
+  const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();
+  o.type="square";o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(300,t+0.09);
+  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.12,t+0.005);g.gain.exponentialRampToValueAtTime(0.0001,t+0.1);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+0.12);
+}
+function sfxCrash(){
+  if(!actx)return;
+  noiseBurst(0.18,0.4,300);
+  const t=actx.currentTime;
+  [[330,0],[247,0.09],[165,0.18],[110,0.3]].forEach(([f,dt])=>{
+    const o=actx.createOscillator(),g=actx.createGain(),s=t+dt;
+    o.type="square";o.frequency.setValueAtTime(f,s);o.frequency.exponentialRampToValueAtTime(f*0.6,s+0.12);
+    g.gain.setValueAtTime(0.0001,s);g.gain.linearRampToValueAtTime(0.14,s+0.01);g.gain.exponentialRampToValueAtTime(0.0001,s+0.16);
+    o.connect(g);g.connect(master);o.start(s);o.stop(s+0.2);
+  });
+}
+ctx.imageSmoothingEnabled=false;
+
+const quotes=[
+  "ебанат, я не просил вносить корректировки!",
+  "ебанат, хватит писать обтекаемо, это судебный акт!",
+  "бля, какую ты хуету написал со страницы 9",
+  "ты, сука, опять сокращаешь фактические обстоятельства",
+  "убери из документа антитезы блядкские",
+  "какого хуя разделил две фирмы, это одно юрлицо",
+  "цифры из таблицы, а источник не указал, гандон",
+  "хуесос, почему про аудит акцент только на одном годе?",
+  "не пиши «процент», сука, ставь знак %",
+  "даты пиши дд.мм.гггг!!! хуесос",
+  "заебал, реквизиты Пленума делай полными",
+  "что это за блядское местоимение «его»?",
+  "долбик, почему в архиве нумерацию не поправил?",
+  "ебень, наименования файлов съехали",
+  "ебень, почему в платёжках 18 листов?",
+  "нет, далбаеб, возьми практику из моих пояснений",
+  "ты анализируешь практику или просто отпизды включаешь?",
+  "хуевый запрос",
+  "заебал, сделай проще, без «если»",
+  "ты че, ебанат? 45 дней — на снятие с учёта",
+  "хуеплет, почему срок давности не истечёт?",
+  "ебанат, журнал-то составлен не на ту дату",
+  "ты конча ебаная, применяется российское право",
+  "блядь, сделай план по-человечески, хватит воды",
+  "какого хуя привёл две цитаты, надо было все!",
+  "это всё хуйня, ты выдумал хуету",
+  "ты далбаеб? всё путаешь, как ты заебал",
+  "и? хули ты остановился, исправляй",
+  "ну ты еблан) вообще не понял мою задачу"
+];
+const overTaunts=["ну ты еблан)","это всё хуйня","конча ебаная","какого хуя проебал"];
+let bag=[];
+function nextQuote(){if(!bag.length){bag=quotes.slice();for(let i=bag.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[bag[i],bag[j]]=[bag[j],bag[i]];}}return bag.pop();}
+
+let W,H,GROUND,PX;
+function resize(){
+  PX=Math.max(3,Math.round(window.innerWidth/340));
+  cv.width=W=Math.floor(window.innerWidth/PX);
+  cv.height=H=Math.floor(window.innerHeight/PX);
+  ctx.imageSmoothingEnabled=false;
+  GROUND=H-Math.max(40,Math.floor(H*0.16));
+  if(player){player.base=GROUND;if(player.onGround)player.y=GROUND;}
+  placeBubble();
+}
+addEventListener("resize",resize);
+
+let state="menu",score=0,best=0,frame=0,speed,player,obstacles,clouds,shake,spawnGap,particles=[];
+function reset(){
+  score=0;speed=2.5;frame=0;obstacles=[];shake=0;spawnGap=100;particles=[];
+  player={x:64,base:GROUND,y:GROUND,vy:0,onGround:true,leg:0,whip:0};
+  clouds=[{x:W*0.3,y:24,w:34},{x:W*0.7,y:40,w:26},{x:W*1.05,y:18,w:40}];
+  bubbleEl.style.display="none";
+}
+
+function placeBubble(){
+  if(bubbleEl.style.display!=="block"||!player)return;
+  const bw=bubbleEl.offsetWidth;
+  let leftPx=Math.round((player.x+24)*PX);
+  const topPx=Math.round((player.y-46)*PX);
+  leftPx=Math.max(8,Math.min(window.innerWidth-bw-8,leftPx));
+  bubbleEl.style.left=leftPx+"px";
+  bubbleEl.style.top=topPx+"px";
+}
+function showBubble(text){
+  bubbleEl.innerHTML='<span class="nm">Юрист</span>'+text;
+  bubbleEl.style.display="block";bubbleEl.classList.remove("out");
+  placeBubble();
+  if(bubbleTimer)clearTimeout(bubbleTimer);
+  bubbleTimer=setTimeout(()=>{bubbleEl.classList.add("out");
+    setTimeout(()=>{if(bubbleEl.classList.contains("out"))bubbleEl.style.display="none";},400);},3600);
+}
+
+function jump(){
+  startMusic();
+  if(state==="menu"||state==="over"){resize();reset();state="play";render();return;}
+  if(player.onGround){player.vy=-9.4;player.onGround=false;player.whip=13;sfxWhip();showBubble(nextQuote());}
+}
+addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump();}});
+addEventListener("pointerdown",e=>{jump();});
+
+const TYPES=[
+ {k:"file",label:"DOCX",c:"#2b579a",c2:"#20406f",w:24,h:28},
+ {k:"file",label:"XLSX",c:"#217346",c2:"#154d2f",w:24,h:26},
+ {k:"file",label:"PDF", c:"#c0392b",c2:"#8e2a20",w:22,h:30},
+ {k:"book",label:"ГК",  c:"#8a3b2e",c2:"#5e2820",w:22,h:26},
+ {k:"book",label:"АПК", c:"#6d4aa0",c2:"#4a3070",w:24,h:24},
+ {k:"book",label:"КоАП",c:"#1f7a7a",c2:"#125050",w:26,h:22},
+ {k:"zip", label:"ZIP", c:"#d9a441",c2:"#a97d24",w:24,h:24}
+];
+function spawn(){
+  const t=TYPES[Math.random()*TYPES.length|0];
+  obstacles.push({x:W+10,w:t.w,h:t.h,t});
+}
+function spawnDust(x){
+  for(let i=0;i<9;i++)particles.push({
+    x:x+(Math.random()*24-12),y:GROUND-1,
+    vx:(Math.random()*2-1)*1.7,vy:-(Math.random()*1.4+0.2),
+    life:12+Math.random()*8,sz:2+(Math.random()*3|0)});
+}
+
+function update(){
+  frame++;
+  speed=2.5;
+  const wasAir=!player.onGround;
+  player.vy+=0.44;player.y+=player.vy;
+  if(player.y>=player.base){player.y=player.base;player.vy=0;player.onGround=true;if(wasAir)spawnDust(player.x);}
+  player.leg=(frame>>3)&1;
+  if(player.whip>0)player.whip--;
+  clouds.forEach(c=>{c.x-=0.15;if(c.x<-c.w-10)c.x=W+Math.random()*40;});
+  if(--spawnGap<=0){spawn();spawnGap=100+Math.random()*70;}
+  obstacles.forEach(o=>o.x-=speed);
+  obstacles=obstacles.filter(o=>o.x+o.w>-6);
+  score++;
+  if(shake>0)shake--;
+  for(const p of particles){p.x+=p.vx-speed*0.35;p.y+=p.vy;p.vy+=0.12;p.vx*=0.9;p.life--;}
+  particles=particles.filter(p=>p.life>0);
+  const px=player.x-14,pw=40;
+  for(const o of obstacles){
+    if(px+pw>o.x+2 && px<o.x+o.w-2 && (player.y-4)>GROUND-o.h+2){
+      state="over";best=Math.max(best,score);shake=8;sfxCrash();
+      showBubble(overTaunts[Math.random()*overTaunts.length|0]);
+      break;
+    }
+  }
+}
+
+// ---- pixel drawing ----
+const R=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x|0,y|0,Math.ceil(w),Math.ceil(h));};
+function drawBg(){
+  R(0,0,W,H,"#79c0f2");
+  R(0,H*0.45,W,H*0.2,"#8fcdf5");
+  // sun (square, minecraft style)
+  R(W-46,20,22,22,"#fff2a8");R(W-42,16,14,4,"#fff2a8");R(W-46,42,22,4,"#ffe27a");
+  // clouds (blocky)
+  clouds.forEach(c=>{R(c.x,c.y,c.w,8,"#ffffff");R(c.x+6,c.y-6,c.w-16,6,"#ffffff");R(c.x+4,c.y+8,c.w-8,5,"#e6f1fb");});
+}
+function drawGround(){
+  R(0,GROUND,W,H-GROUND,"#7b5a3a");           // dirt
+  R(0,GROUND,W,10,"#6db74b");                  // grass top
+  R(0,GROUND+10,W,3,"#5aa23c");                // grass shade
+  const off=Math.floor(frame*speed)% 16;
+  for(let x=-off;x<W;x+=16){                   // grass tufts + dirt speckle
+    R(x+3,GROUND-2,4,3,"#7cc456");
+    R(x+9,GROUND+16,4,4,"#6b4c30");
+    R(x+2,GROUND+26,5,5,"#5e4229");
+  }
+}
+function label(cx,cy,txt,col){
+  ctx.fillStyle=col;ctx.font="bold "+(txt.length>=4?7:9)+"px 'Courier New',monospace";
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(txt,cx|0,cy|0);
+  ctx.textAlign="left";ctx.textBaseline="alphabetic";
+}
+function drawObstacle(o){
+  const t=o.t,x=o.x,y=GROUND-o.h,w=o.w,h=o.h;
+  if(t.k==="file"){
+    R(x,y,w,h,"#f0ece0");
+    R(x,y,w,7,t.c);
+    R(x+w-6,y,6,6,t.c2);R(x+w-6,y,6,1,"#f0ece0");
+    for(let i=12;i<h-3;i+=5)R(x+3,y+i,w-6,2,"#c9c0aa");
+    label(x+w/2,y+4,t.label,"#fff");
+  }else if(t.k==="book"){
+    R(x,y,w,h,t.c);
+    R(x,y,4,h,t.c2);
+    R(x+7,y+4,w-10,2,"#e8d9a0");R(x+7,y+h-6,w-10,2,"#e8d9a0");
+    label(x+w/2+1,y+h/2,t.label,"#ffe9b0");
+  }else{
+    R(x,y+4,w,h-4,t.c);
+    R(x,y,w*0.55,5,t.c2);R(x,y+4,w,2,t.c2);
+    R(x+w/2-2,y+7,4,h-11,"#8a6318");
+    for(let i=8;i<h-3;i+=4)R(x+w/2-3,y+i,6,2,"#e8c76a");
+    label(x+w/2,y+h-6,t.label,"#3a2b08");
+  }
+}
+function drawPlayer(){
+  const bx=player.x,by=player.y,dead=state==="over";
+  R(bx-16,GROUND+3,38,3,"rgba(0,0,0,0.18)"); // shadow
+  const sw=player.onGround?(player.leg?2:-2):0;
+  // agent (robo-donkey), blocky — legs
+  R(bx-14+sw,by-10,4,10,"#5e6a78");
+  R(bx-6-sw,by-10,4,10,"#5e6a78");
+  R(bx+4+sw,by-10,4,10,"#5e6a78");
+  R(bx+11-sw,by-10,4,10,"#5e6a78");
+  // body
+  R(bx-18,by-30,36,20,"#8b95a1");
+  R(bx-18,by-30,36,3,"#a3adb8");
+  R(bx-18,by-13,36,3,"#6f7986");
+  // tail
+  R(bx-21,by-28,4,11,"#6f7986");
+  // head + ears
+  R(bx+14,by-34,16,17,"#8b95a1");
+  R(bx+14,by-40,4,7,"#8b95a1");R(bx+24,by-40,4,7,"#8b95a1");
+  // screen face
+  R(bx+17,by-31,12,9,"#202a33");
+  const hit=player.whip>0;
+  const ew=hit?5:3,eh=hit?7:(dead?2:4),ey=hit?by-31:by-30;
+  R(bx+18,ey,ew,eh,"#57e0c6");R(bx+24,ey,ew,eh,"#57e0c6");
+  if(hit){R(bx+19,by-31,2,2,"#eafffb");R(bx+25,by-31,2,2,"#eafffb");} // shock glint
+  R(bx+20,by-23,6,2,hit?"#ff6b5e":"#57e0c6"); // mouth
+  if(player.whip>3)R(bx+29,by-30,2,3,"#5cc6ff"); // sweat
+  // rider (lawyer)
+  R(bx-9,by-44,17,15,"#2c2f4a");   // suit
+  R(bx-6,by-44,11,2,"#3a3d5c");
+  R(bx-2,by-42,3,7,"#d23b2b");     // tie
+  R(bx-7,by-55,14,11,"#e8b98f");   // head
+  R(bx-7,by-57,14,4,"#3a2b20");    // hair
+  R(bx+3,by-50,2,2,"#2a2a2a");     // eye
+  // arm + whip (cracks the donkey's rear, on the left)
+  if(player.whip>0){
+    R(bx-3,by-55,4,11,"#e8b98f");   // raised arm
+    R(bx-7,by-57,6,3,"#e8b98f");    // hand
+    R(bx-13,by-59,7,3,"#3a2a18");   // handle
+    // bright lash arcing back over the rump
+    R(bx-19,by-56,7,3,"#c98a3a");
+    R(bx-25,by-51,6,3,"#e0b050");
+    R(bx-29,by-44,4,6,"#ffd23a");
+    R(bx-28,by-36,4,6,"#ffd23a");
+    R(bx-25,by-30,4,5,"#ffb020");   // tip down onto rump
+    // impact burst on the rear
+    R(bx-22,by-30,4,4,"#fff2a8");
+    R(bx-18,by-33,3,3,"#ffd23a");
+    R(bx-20,by-26,3,3,"#fff2a8");
+    R(bx-16,by-29,2,2,"#ffffff");
+    R(bx-31,by-33,4,2,"#ffffff");R(bx-14,by-24,3,2,"#ffffff"); // spark lines
+  }else{
+    R(bx+5,by-47,3,9,"#e8b98f");
+    R(bx+6,by-39,2,8,"#6b4a2a");
+  }
+}
+
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  if(shake>0){const s=(Math.random()*2-1)*shake*0.6;ctx.setTransform(1,0,0,1,Math.round(s),Math.round((Math.random()*2-1)*shake*0.4));}
+  drawBg();obstacles.forEach(drawObstacle);drawPlayer();drawGround();
+  particles.forEach(p=>{const a=Math.max(0,Math.min(1,p.life/16));
+    ctx.fillStyle="rgba(216,198,152,"+(0.65*a).toFixed(2)+")";
+    const s=Math.max(1,p.sz|0);ctx.fillRect(p.x|0,p.y|0,s,s);});
+  ctx.setTransform(1,0,0,1,0,0);
+}
+
+let lastUI="";
+function ui(){
+  hud.innerHTML= state==="play"||state==="over"
+    ? "метраж <b>"+(score/10|0)+"</b>"+(best?"<br>рекорд "+(best/10|0):"")
+    : "";
+  if(state==="menu"){
+    if(lastUI!=="menu"){lastUI="menu";centerEl.style.display="flex";
+      panel.innerHTML='<h1 class="tb">Упрямый Довод</h1><p>Ты — юрист. Гоняешь агента-ишака хлыстом через документы и кодексы.<br><br>Начать — <b>пробел</b> · Прыжок — <b>пробел</b> (или клик)<br><br><span class="blink">жми пробел</span></p>';}
+  }else if(state==="over"){
+    const k="over"+(score/10|0)+"_"+(best/10|0);
+    if(lastUI!==k){lastUI=k;centerEl.style.display="flex";
+      panel.innerHTML='<h1 class="dead">Довод издох</h1><p>Метраж: '+(score/10|0)+'  ·  Рекорд: '+(best/10|0)+'<br><br><span class="blink">Пробел / клик — заново</span></p>';}
+  }else{if(lastUI!=="play"){lastUI="play";centerEl.style.display="none";}}
+}
+
+function loop(){
+  if(state==="play")update();
+  render();ui();placeBubble();
+  requestAnimationFrame(loop);
+}
+resize();
+player={x:64,base:GROUND,y:GROUND,vy:0,onGround:true,leg:0,whip:0};
+clouds=[{x:W*0.3,y:24,w:34},{x:W*0.7,y:40,w:26},{x:W*1.05,y:18,w:40}];
+obstacles=[];shake=0;score=0;speed=2.5;frame=0;spawnGap=100;
+loop();
+</script>
+</body>
+</html>

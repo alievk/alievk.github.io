@@ -2,14 +2,15 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Упрямый Довод</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;overflow:hidden;background:#79c0f2}
-  body{font-family:"Courier New",monospace;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  html,body{height:100%;overflow:hidden;background:#79c0f2;overscroll-behavior:none}
+  body{font-family:"Courier New",monospace;user-select:none;-webkit-user-select:none;
+    touch-action:none;-webkit-touch-callout:none}
   #game{position:fixed;inset:0;width:100vw;height:100vh;display:block;
-    image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer}
+    image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer;touch-action:none}
   .ov{position:fixed;pointer-events:none;z-index:2;color:#fff;
     text-shadow:2px 2px 0 rgba(30,30,30,.85);font-weight:bold;letter-spacing:.02em}
   #hud{top:14px;right:16px;text-align:right;font-size:clamp(14px,2.2vw,20px);line-height:1.5}
@@ -158,11 +159,13 @@ function nextQuote(){if(!bag.length){bag=quotes.slice();for(let i=bag.length-1;i
 
 let W,H,GROUND,PX;
 function resize(){
-  PX=Math.max(3,Math.round(window.innerWidth/340));
-  cv.width=W=Math.floor(window.innerWidth/PX);
-  cv.height=H=Math.floor(window.innerHeight/PX);
+  const vw=window.innerWidth,vh=window.innerHeight;
+  PX=Math.max(2,Math.round(vw/380));
+  cv.width=W=Math.floor(vw/PX);
+  cv.height=H=Math.floor(vh/PX);
   ctx.imageSmoothingEnabled=false;
-  GROUND=H-Math.max(40,Math.floor(H*0.16));
+  const bottom=vh>vw*1.15?Math.floor(H*0.24):Math.max(40,Math.floor(H*0.16));
+  GROUND=H-bottom;
   if(player){player.base=GROUND;if(player.onGround)player.y=GROUND;}
   placeBubble();
 }
@@ -200,7 +203,12 @@ function jump(){
   if(player.onGround){player.vy=-9.4;player.onGround=false;player.whip=13;sfxWhip();showBubble(nextQuote());}
 }
 addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump();}});
-addEventListener("pointerdown",e=>{jump();});
+if("onpointerdown" in window){
+  addEventListener("pointerdown",e=>{e.preventDefault();jump();},{passive:false});
+}else{
+  addEventListener("touchstart",e=>{e.preventDefault();jump();},{passive:false});
+  addEventListener("mousedown",e=>{jump();});
+}
 
 const TYPES=[
  {k:"file",label:"DOCX",c:"#2b579a",c2:"#20406f",w:24,h:28},

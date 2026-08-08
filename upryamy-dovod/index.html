@@ -181,10 +181,11 @@ function reset(){
 
 function placeBubble(){
   if(bubbleEl.style.display!=="block"||!player)return;
-  const bw=bubbleEl.offsetWidth;
+  const bw=bubbleEl.offsetWidth,bh=bubbleEl.offsetHeight;
   let leftPx=Math.round((player.x+24)*PX);
-  const topPx=Math.round((player.y-46)*PX);
   leftPx=Math.max(8,Math.min(window.innerWidth-bw-8,leftPx));
+  let topPx=Math.round((player.y-70)*PX); // bubble bottom sits above the lawyer's head
+  topPx=Math.max(bh+8,topPx);             // never clip off the top of the screen
   bubbleEl.style.left=leftPx+"px";
   bubbleEl.style.top=topPx+"px";
 }
